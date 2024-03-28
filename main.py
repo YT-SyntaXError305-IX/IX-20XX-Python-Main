@@ -2,35 +2,35 @@ import glfw
 import OpenGL.GL as gl
 import imgui
 from imgui.integrations.glfw import GlfwRenderer
-import math
 import pygetwindow as gw
 import pymem, utility
 import webbrowser
-import threading
-import time
 import sys
+import math
 
-rapid_int_change_on = False
-
-process = pymem.Pymem("30XX.exe")
-LocalPlayerOffset = process.base_address + 0x99A260
-MainWeaponPointer = utility.FindDMAAddy(process.process_handle, LocalPlayerOffset, [0x594])
-QWeaponPointer = utility.FindDMAAddy(process.process_handle, LocalPlayerOffset, [0x1FA8])
-WWeaponPointer = utility.FindDMAAddy(process.process_handle, LocalPlayerOffset, [0x1FAC])
-EWeaponPointer = utility.FindDMAAddy(process.process_handle, LocalPlayerOffset, [0x1FB0])
-DamagePointer = utility.FindDMAAddy(process.process_handle, LocalPlayerOffset, [0x610])
-LightningPointer = utility.FindDMAAddy(process.process_handle, LocalPlayerOffset, [0x640])
-SpeedPointer = utility.FindDMAAddy(process.process_handle, LocalPlayerOffset, [0x5F8])
-HealthAddress = process.base_address + 0x43E107
-EnergyAddress = process.base_address + 0x4E6D3B
-InstantKillAddress = process.base_address + 0x4E6355
-InstantKillRAddress = process.base_address + 0x4E635C
-ColorCyclePointer = process.base_address + 0x49A037C
-BypassColorAddress = process.base_address + 0x408A86  
+process = pymem.Pymem("20XX.exe")
+LocalPlayerOffset = process.base_address + 0x47B88B8
+MainWeaponPointer = utility.FindDMAAddy(process.process_handle, LocalPlayerOffset, [0x34C])
+QWeaponPointer = utility.FindDMAAddy(process.process_handle, LocalPlayerOffset, [0xF44])
+WWeaponPointer = utility.FindDMAAddy(process.process_handle, LocalPlayerOffset, [0xF48])
+EWeaponPointer = utility.FindDMAAddy(process.process_handle, LocalPlayerOffset, [0xF4C])
+DamagePointer = utility.FindDMAAddy(process.process_handle, LocalPlayerOffset, [0x388])
+PowerDamagePointer = utility.FindDMAAddy(process.process_handle, LocalPlayerOffset, [0x3B8])
+SpeedPointer = utility.FindDMAAddy(process.process_handle, LocalPlayerOffset, [0x370])
+JumpPointer = utility.FindDMAAddy(process.process_handle, LocalPlayerOffset, [0x380])
+HealthAddress = utility.FindDMAAddy(process.process_handle, LocalPlayerOffset, [0xF0])
+EnergyAddress = utility.FindDMAAddy(process.process_handle, LocalPlayerOffset, [0x118])
+StaticBolts = process.base_address + 0x4699188
+SoulChips = process.base_address + 0x680278
+CharacterId = process.base_address + 0x47AFE18
 
 addresses = [MainWeaponPointer, QWeaponPointer, WWeaponPointer, EWeaponPointer]
-original_values = [process.read_int(address) for address in addresses]
+original_values = [process.read_int(address) for address in addresses] 
 values_set_to_zero = [False] * len(addresses)
+
+Unlimited_Energy_Flag = False
+God_Mode_Flag = False
+Instant_Kill_Flag = False
 
 def init_imgui(window):
     imgui.create_context()
@@ -38,26 +38,37 @@ def init_imgui(window):
     imgui.style_colors_dark()
     return impl
 
-bypass_color_flag = False
-Unlimited_Energy_Flag = False
-God_Mode_Flag = False
-Instant_Kill_Flag = False
-
-def toggle_bypass_color_flag():
-    global bypass_color_flag
-    bypass_color_flag = not bypass_color_flag
-
 def toggle_unlimited_energy():
     global Unlimited_Energy_Flag
     Unlimited_Energy_Flag = not Unlimited_Energy_Flag
+    if toggle_unlimited_energy:
+         process.write_int(EnergyAddress, 333333) #Unlimited Energy Needs To Be Fixed
+    else:
+         print("Unlimited Energy Toggled: OFF")
+   
+    
 
 def toggle_god_mode():
     global God_Mode_Flag
-    God_Mode_Flag = not God_Mode_Flag
+    God_Mode_Flag = not God_Mode_Flag #Godmode Needs To Be Fixed
+    while God_Mode_Flag:
+      process.write_int(HealthAddress, 333333)
+    else:
+      print("God-Mode Toggled: OFF")
+
+
+   
 
 def toggle_instant_kill():
     global Instant_Kill_Flag
     Instant_Kill_Flag = not Instant_Kill_Flag
+
+    if Instant_Kill_Flag:
+        process.write_int(DamagePointer, 333333) #Instant Kill Needs To Be Fixed 
+        process.write_int(PowerDamagePointer, 333333)
+    else:
+         process.write_int(DamagePointer, 0)
+         process.write_int(PowerDamagePointer, 0)
 
 def render_imgui(impl, values):
     imgui.new_frame()
@@ -91,18 +102,8 @@ def render_imgui(impl, values):
                  math.sin(glfw.get_time() * 1.0) * 0.5 + 0.5, 1.0]
         imgui.text_colored(f"Value {i+1}: {value}", *color)
 
-    if rapid_int_change_on:
-        imgui.text_colored("RainBow Character: ON", *color)
-    else:
-        imgui.text("RainBow Character: OFF")
 
-    if imgui.button("Toggle Rainbow Character"):
-        toggle_rapid_int_change()
-
-    if imgui.button("Bypass Color"):
-        toggle_bypass_color_flag()
-
-    if     imgui.button("Unlimited Power"):
+    if imgui.button("Unlimited Power"):
         toggle_unlimited_energy()
 
     if imgui.button("God-Mode"):
@@ -120,48 +121,12 @@ def render_imgui(impl, values):
     imgui.text_colored("Cheat the game because it doesn't mind cheating you. ~ CTG", *color)
     if imgui.button("Learn Cheat Engine"):
         webbrowser.open("https://www.youtube.com/@ChrisFayte?sub_confirmation=1")
-    
-    if Instant_Kill_Flag:
-        process.write_bytes(InstantKillAddress, b"\x48\xB8\x00\x00\x00\x00\x00\x00\x00\x00" ,10)
-    else:
-        process.write_bytes(InstantKillAddress, b"\x48\x8B\x83\xB8\x01\x00\x00" ,7)
-        process.write_bytes(InstantKillRAddress, b"\x48\x2B\xC5" ,3)
-
-    if bypass_color_flag:
-        process.write_bytes(BypassColorAddress, b"\x75\x1A" ,2)
-    else:
-        process.write_bytes(BypassColorAddress, b"\x74\x1A" ,2)  
-
-    if Unlimited_Energy_Flag:
-        process.write_bytes(EnergyAddress, b"\x90\x90\x90\x90\x90\x90\x90" ,7)
-    else:
-        process.write_bytes(EnergyAddress, b"\x48\x29\x9F\xE8\x01\x00\xf0" ,7)
-
-    if God_Mode_Flag:
-        process.write_bytes(HealthAddress, b"\x90\x90\x90" ,3)
-    else:
-        process.write_bytes(HealthAddress, b"\x48\x2B\xCF" ,3)  
 
     imgui.end()
 
     imgui.render()
     impl.process_inputs()
     impl.render(imgui.get_draw_data())
-
-def toggle_rapid_int_change():
-    global rapid_int_change_on
-    rapid_int_change_on = not rapid_int_change_on
-    if rapid_int_change_on:
-        threading.Thread(target=rapid_int_change_thread).start()
-
-def rapid_int_change_thread():
-    value = 0
-    while rapid_int_change_on:
-        process.write_int(ColorCyclePointer, value)
-        value = (value + 1) % 13
-        if value == 0:
-            value = 1
-        time.sleep(0.1)
 
 def main():
     menu_visible = True
