@@ -44,20 +44,24 @@ def init_imgui(window):
 def toggle_unlimited_energy():
     global Unlimited_Energy_Flag
     Unlimited_Energy_Flag = not Unlimited_Energy_Flag
-    if toggle_unlimited_energy:
-         process.write_int(EnergyAddress, Unlimited) #Unlimited Energy Needs To Be Fixed
+    if Unlimited_Energy_Flag:
+        process.write_int(EnergyAddress, Unlimited)
     else:
-         print("Unlimited Energy Toggled: OFF")
+        print("Unlimited Energy Toggled: OFF")
+
    
     
 
 def toggle_god_mode():
     global God_Mode_Flag
-    God_Mode_Flag = not God_Mode_Flag #Godmode Needs To Be Fixed
-    while God_Mode_Flag:
-      process.write_int(HealthAddress, Unlimited)
+    God_Mode_Flag = not God_Mode_Flag
+    if God_Mode_Flag:
+        process.write_int(HealthAddress, Unlimited)
+        print("God-Mode Toggled: ON")
     else:
-      print("God-Mode Toggled: OFF")
+        process.write_int(HealthAddress, original_values)  # Restore original health value
+        print("God-Mode Toggled: OFF")
+
 
 
    
@@ -66,12 +70,18 @@ def toggle_instant_kill():
     global Instant_Kill_Flag
     Instant_Kill_Flag = not Instant_Kill_Flag
 
+def toggle_instant_kill():
+    global Instant_Kill_Flag
+    Instant_Kill_Flag = not Instant_Kill_Flag
     if Instant_Kill_Flag:
-        process.write_int(DamagePointer, Unlimited) #Instant Kill Needs To Be Fixed 
+        process.write_int(DamagePointer, Unlimited)
         process.write_int(PowerDamagePointer, Unlimited)
+        print("Instant Kill Toggled: ON")
     else:
-         process.write_int(DamagePointer, 0)
-         process.write_int(PowerDamagePointer, 0)
+        process.write_int(DamagePointer, 0)  # Restore original damage value
+        process.write_int(PowerDamagePointer, 0)  # Restore original power damage value
+        print("Instant Kill Toggled: OFF")
+
 
 def render_imgui(impl, values):
     imgui.new_frame()
