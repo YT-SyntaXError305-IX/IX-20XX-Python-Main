@@ -24,6 +24,9 @@ StaticBolts = process.base_address + 0x4699188
 SoulChips = process.base_address + 0x680278
 CharacterId = process.base_address + 0x47AFE18
 
+Unlimited = 33000
+
+
 addresses = [MainWeaponPointer, QWeaponPointer, WWeaponPointer, EWeaponPointer]
 original_values = [process.read_int(address) for address in addresses] 
 values_set_to_zero = [False] * len(addresses)
@@ -42,7 +45,7 @@ def toggle_unlimited_energy():
     global Unlimited_Energy_Flag
     Unlimited_Energy_Flag = not Unlimited_Energy_Flag
     if toggle_unlimited_energy:
-         process.write_int(EnergyAddress, 333333) #Unlimited Energy Needs To Be Fixed
+         process.write_int(EnergyAddress, Unlimited) #Unlimited Energy Needs To Be Fixed
     else:
          print("Unlimited Energy Toggled: OFF")
    
@@ -52,7 +55,7 @@ def toggle_god_mode():
     global God_Mode_Flag
     God_Mode_Flag = not God_Mode_Flag #Godmode Needs To Be Fixed
     while God_Mode_Flag:
-      process.write_int(HealthAddress, 333333)
+      process.write_int(HealthAddress, Unlimited)
     else:
       print("God-Mode Toggled: OFF")
 
@@ -64,8 +67,8 @@ def toggle_instant_kill():
     Instant_Kill_Flag = not Instant_Kill_Flag
 
     if Instant_Kill_Flag:
-        process.write_int(DamagePointer, 333333) #Instant Kill Needs To Be Fixed 
-        process.write_int(PowerDamagePointer, 333333)
+        process.write_int(DamagePointer, Unlimited) #Instant Kill Needs To Be Fixed 
+        process.write_int(PowerDamagePointer, Unlimited)
     else:
          process.write_int(DamagePointer, 0)
          process.write_int(PowerDamagePointer, 0)
