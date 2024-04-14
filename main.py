@@ -114,6 +114,7 @@ def render_imgui(impl, values):
     imgui.text_colored("Cheat the game because it doesn't mind cheating you. ~ CTG", *color)
     if imgui.button("Learn Cheat Engine"):
         webbrowser.open("https://www.youtube.com/@ChrisFayte?sub_confirmation=1")
+    imgui.text_colored("Last Updated 4/14/2024 ~ SyntaX_Error305", *color)
     imgui.end()
     imgui.render()
     impl.process_inputs()
